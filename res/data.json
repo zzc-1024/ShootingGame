@@ -1,0 +1,13 @@
+{
+    "AI": {
+        "attack": 1,
+        "hp": 3,
+        "speed": 100
+    },
+    "player": {
+        "attack": 1,
+        "cd": 0.1,
+        "hp": 10,
+        "speed": 100
+    }
+}

@@ -1,120 +1,151 @@
-#include "SFML/Graphics.hpp"
-//#include "SFML/Network.hpp"
-//#include "SFML/Audio.hpp"
 #ifndef _DEBUG
 #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 #endif
-#include <iostream>
+constexpr int FAIL_TO_FIND_RES		= 1 << 0;
+
+//#include "SFML/Graphics.hpp"
+//#include "SFML/Network.hpp"
+#include "SFML/Audio.hpp"
+#include "jsonxx/json.hpp"
+#include "Player.h"
+#include "AI.h"
+#include "bullet.h"
+
+#include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <vector>
 #include <list>
 #include <stdlib.h>
-#include <cmath>
 
 #include <vld.h>
 
 using namespace sf;
 using namespace std;
+using namespace jsonxx;
 
-constexpr int width = 800;
-constexpr int height = 600;
-const double pi = acos(-1);
+int width	= 800;
+int height	= 600;
 
 RenderWindow* window;
+Texture texture, fireBullet;
 Font font;
 Text text;
 Clock clk;
 
-class object;
-class bullet;
+Sound shoot;
 
-void menu();
+void menu(int score);
 
-void run();
+int run();
 
 int main()
 {
-	window = new RenderWindow(VideoMode(width, height), L"射击游戏", Style::Close | Style::Titlebar);
+	json j;
+	try
+	{
+		ifstream ifm("res/data.json");
+		ifm >> j;
+		Player::globalHP = j["player"]["hp"].as_integer();
+		Player::globalAttack = j["player"]["attack"].as_integer();
+		Player::globalSpeed = j["player"]["speed"].as_float();
+		Player::globalCD = j["player"]["cd"].as_float();
+		AI::globalHP = j["AI"]["hp"].as_integer();
+		AI::globalAttack = j["AI"]["attack"].as_integer();
+		AI::globalSpeed = j["AI"]["speed"].as_float();
+#ifdef _DEBUG
+		cout << "Read resource successfully!" << endl;
+#endif
+	}
+	catch (json_deserialization_error e)
+	{
+#ifdef _DEBUG
+		cout << "Failed to read resource" << endl;
+#endif
+		ofstream ofm("res/data.json");
+		j["player"]["hp"] = Player::globalHP;
+		j["player"]["attack"] = Player::globalAttack;
+		j["player"]["speed"] = Player::globalSpeed;
+		j["player"]["cd"] = Player::globalCD;
+		j["AI"]["hp"] = AI::globalHP;
+		j["AI"]["attack"] = AI::globalAttack;
+		j["AI"]["speed"] = AI::globalSpeed;
+		try
+		{
+			ofm << setw(4) << j;
+		}
+		catch (json_deserialization_error e)
+		{
+			system("mkdir res");
+			ofm << setw(4) << j;
+			return FAIL_TO_FIND_RES;
+		}
+	}
+
+	if (!texture.loadFromFile("res/Tileset.png"))
+		return FAIL_TO_FIND_RES;
+
+	if (!fireBullet.loadFromFile("res/fireball.png"))
+		return FAIL_TO_FIND_RES;
+
+	Music music;
+	if (!music.openFromFile("res/game_music.wav"))
+		return FAIL_TO_FIND_RES;
+	music.setLoop(true);
+	music.play();
+
+	SoundBuffer shootBuffer;
+	if (!shootBuffer.loadFromFile("res/shoot.wav"))
+		return FAIL_TO_FIND_RES;
+	shoot.setBuffer(shootBuffer);
+
+	window = new RenderWindow(VideoMode(width, height), L"射击游戏",/*Style::Fullscreen*/ Style::Close | Style::Titlebar);
 	window->setVerticalSyncEnabled(true);
 	View view = window->getView();
 	view.setCenter(0, 0);
 	window->setView(view);
-	font.loadFromFile("simsun.ttc");
+	font.loadFromFile("res/simsun.ttc");
 	text.setFont(font);
 	text.setString(L"开始\n游戏");
 	text.setScale(2, 2);
-	FloatRect lb = text.getLocalBounds();
-	text.setOrigin(lb.left + lb.width / 2, lb.top + lb.height / 2);
+	Util::setCenter(text);
 	srand(time(0));
+	int score = -1;
 	while (window->isOpen())
 	{
-		menu();
+		menu(score);
 		if (!window->isOpen())
 			break;
 		clk.restart();
-		run();
+		score = run();
+
 	}
 	delete window;
 
 	return 0;
 }
 
-
-class object
-{
-public:
-	int hp;
-	int attack;
-	float speed;
-	float cd;
-	CircleShape shape;
-
-	object()
-	{
-		hp = 10;
-		attack = 1;
-		speed = 100;
-		cd = 0.1;
-		shape.setRadius(20.f);
-		shape.setOrigin(Vector2f(20.f, 20.f));
-		shape.setFillColor(Color(rand() % 256, rand() % 256, rand() % 256, 255));
-	}
-};
-
-class bullet
-{
-public:
-	CircleShape shape;
-	float speed;
-	float life;
-	float angle;
-
-	bullet()
-	{
-		life = 1.f;
-		speed = 300;
-		shape.setFillColor(Color(rand() % 256, rand() % 256, rand() % 256, 255));
-		shape.setRadius(5.f);
-		shape.setOrigin(5.f, 5.f);
-		angle = 0.f;
-	}
-};
-
-void menu()
+void menu(int score) 
 {
 	View view = window->getView();
 	view.setCenter(0, 0);
 	window->setView(view);
+	wstringstream wss;
+	wss << L"最终得分为:" << score;
+	wstring info;
+	wss >> info;
+	Text show;
+	show.setString(info);
+	show.setFont(font);
+	Util::setCenter(show);
+	show.setPosition(0, -height / 4);
+	show.setFillColor(Color::Black);
 	while (true)
 	{
-		Font font;
 		RectangleShape rect;
 		rect.setFillColor(Color::Black);
 		rect.setSize(Vector2f(text.getGlobalBounds().width, text.getGlobalBounds().height));
 		rect.setOrigin(rect.getSize().x / 2, rect.getSize().y / 2);
 		rect.setPosition(text.getPosition());
-		font.loadFromFile("simsun.ttc");
 		wstringstream sstring;
 		Vector2f pos = window->mapPixelToCoords(Mouse::getPosition(*window));
 		wstring s;
@@ -137,24 +168,46 @@ void menu()
 		text.setFillColor(Color::Blue);
 		window->draw(rect);
 		window->draw(text);
+		if (score >= 0)
+			window->draw(show);
 		window->display();
 	}
 }
 
-void run()
+int run()
 {
-	object player;
-	player.shape.setPosition(400.f, 300.f);
+	Player player;
+	player.shape.setPosition(width / 2, height / 2);
+	player.loadTexture(texture, 192, 106, 16, 22, 4);
 
-	vector<object> v;
+	list<AI> v;
 	list<bullet> b;
+	AI ai;
+	ai.loadTexture(texture, 432, 80, 16, 16, 4);
+
+	ai.shape.setPosition(-width / 2, rand() % 600);
+	//ai.resetColor();
+	v.push_back(ai);
+
+	ai.shape.setPosition(width * 1.5, rand() % 600);
+	//ai.resetColor();
+	v.push_back(ai);
+
+	ai.shape.setPosition(rand() % 800, -height / 2);
+	//ai.resetColor();
+	v.push_back(ai);
+
+	ai.shape.setPosition(rand() % 800, height * 1.5);
+	//ai.resetColor();
+	v.push_back(ai);
 
 	int score = 0;
 	float dt;
+	float flushAI = 0.f;
 
 	View view = window->getView();
 
-	const wstring showScore = L"当前得分:", showFPS = L"FPS:";
+	const wstring showScore = L"当前得分:", showFPS = L"FPS:" ,showHP = L"生命值";
 
 	while (player.hp > 0)
 	{
@@ -167,7 +220,7 @@ void run()
 			if (event.type == Event::Closed)
 			{
 				window->close();
-				return;
+				return score;
 			}
 		}
 
@@ -182,8 +235,8 @@ void run()
 			player.shape.move(Vector2f(0, player.speed * dt));
 		if (Keyboard::isKeyPressed(Keyboard::Escape))
 		{
-			window->close();
-			return;
+			//window->close();
+			return score;
 		}
 
 		Vector2f ppos = player.shape.getPosition();
@@ -201,11 +254,16 @@ void run()
 		view.setCenter(ppos);
 		window->setView(view);
 
+		//AI进行移动
 		for (auto& it : v)
 		{
 			Vector2f pos;
 			pos = it.shape.getPosition();
 			float dx = ppos.x - pos.x;
+			if (dx >= 0)
+				it.isReverse = false;
+			else
+				it.isReverse = true;
 			float dy = ppos.y - pos.y;
 			float angle;
 			if (dx == 0)
@@ -213,16 +271,28 @@ void run()
 			else
 				angle = abs(atan(dy / dx));
 
-			it.shape.move
-			(dx / abs(dx) * it.speed * cos(angle) * dt, dy / abs(dy) * it.speed * sin(angle) * dt);
+			it.shape.move(
+				dx / abs(dx) * it.speed * cos(angle) * dt, 
+				dy / abs(dy) * it.speed * sin(angle) * dt
+			);
 		}
 
-		if (Mouse::isButtonPressed(Mouse::Left))
+		//发射子弹
+		player.cdRemain -= dt;
+		Vector2f posView;
+		posView = window->mapPixelToCoords(Mouse::getPosition(*window));
+		float dx = posView.x - ppos.x;
+		float dy = posView.y - ppos.y;
+		if (dx >= 0)
+			player.isReverse = false;
+		else
+			player.isReverse = true;
+		if (player.cdRemain < 0.f)
+			player.cdRemain = 0.f;
+		if (player.cdRemain == 0.f && Mouse::isButtonPressed(Mouse::Left))
 		{
-			Vector2f posView;
-			posView = window->mapPixelToCoords(Mouse::getPosition(*window));
-			float dx = posView.x - ppos.x;
-			float dy = posView.y - ppos.y;
+			shoot.play();
+			player.cdRemain = player.cd;
 			float angle;
 			if (dx == 0)
 				if (dy > 0)
@@ -237,6 +307,7 @@ void run()
 			}
 			bullet tmp;
 			tmp.angle = angle;
+			tmp.loadTexture(fireBullet, 0, 0, 26, 10, 10);
 			tmp.shape.setPosition(ppos);
 			b.push_back(tmp);
 		}
@@ -255,10 +326,14 @@ void run()
 			{
 				if (it->shape.getGlobalBounds().intersects(tmp->shape.getGlobalBounds()))
 				{
-					v.erase(tmp++);
 					b.erase(it++);
-					score++;
 					flag = false;
+					tmp->hp -= player.attack;
+					if (tmp->hp <= 0)
+					{
+						v.erase(tmp++);
+						score++;
+					}
 					break;
 				}
 				else
@@ -275,23 +350,42 @@ void run()
 		{
 			if (it->shape.getGlobalBounds().intersects(player.shape.getGlobalBounds()))
 			{
-				//window->close();
-				return;
+				player.hp -= it->attack;
+				v.erase(it++);
+				if (player.hp <= 0)
+					return score;
 			}
-			it++;
+			else
+				it++;
 		}
 
-		object ai;
+		//ai.resetColor();
 
-		ai.shape.setPosition(0.f, rand() % 600);
-
-		if (rand() % 1000 < 100)
-			v.push_back(ai);
+		flushAI += dt;
+		while (flushAI >= 0.1f)
+		{
+			flushAI -= 0.1f;
+			ai.shape.setPosition(-width / 2, rand() % 600);
+			if (rand() % 1000 < 10 + score)
+				v.push_back(ai);
+			ai.shape.setPosition(width * 1.5, rand() % 600);
+			if (rand() % 1000 < 10 + score)
+				v.push_back(ai);
+			ai.shape.setPosition(rand() % 800, -height / 2);
+			if (rand() % 1000 < 10 + score)
+				v.push_back(ai);
+			ai.shape.setPosition(rand() % 800, height * 1.5);
+			if (rand() % 1000 < 10 + score)
+				v.push_back(ai);
+		}
 
 		//更新显示的信息
 		wstringstream wss;
 		wstring showInfo;
-		wss << setprecision(0) << fixed << L"当前得分:" << score << L"\n" << showFPS << 1 / dt;
+		wss << setprecision(0) << fixed 
+			<< L"当前得分:" << score << L"\n" 
+			<< showFPS << 1 / dt << L'\n' 
+			<< showHP << player.hp;
 		wchar_t c;
 		while ((c = wss.get()) != WEOF)
 			showInfo += c;
@@ -303,19 +397,24 @@ void run()
 		info.setPosition(ppos.x - width / 2, ppos.y - height / 2);
 		info.setOrigin(info.getLocalBounds().left, info.getLocalBounds().top);
 
-		window->clear(Color::White);
+		window->clear(Color::Magenta);
 
 		RectangleShape rect(Vector2f(width, height));
 		rect.setFillColor(Color::White);
-		rect.setOutlineThickness(1);
+		rect.setOutlineThickness(2);
 		rect.setOutlineColor(Color::Black);
 		window->draw(rect);
 
-		window->draw(player.shape);
+		//window->draw(player.shape);
+		window->draw(player.updateState(dt));
+		//for (auto& it : v)
+		//	window->draw(it.shape);
 		for (auto& it : v)
-			window->draw(it.shape);
+			window->draw(it.updateState(dt));
 		for (auto& it : b)
 			window->draw(it.shape);
+		for (auto& it : b)
+			window->draw(it.updateState(dt));
 		window->draw(info);
 
 		window->display();
