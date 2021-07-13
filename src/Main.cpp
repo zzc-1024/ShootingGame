@@ -7,8 +7,8 @@ constexpr int FAIL_TO_FIND_RES		= 1 << 0;
 //#include "SFML/Network.hpp"
 #include "SFML/Audio.hpp"
 #include "jsonxx/json.hpp"
-#include "Player.h"
-#include "AI.h"
+#include "chr/Player.h"
+#include "chr/AI.h"
 #include "bullet.h"
 
 #include <fstream>
