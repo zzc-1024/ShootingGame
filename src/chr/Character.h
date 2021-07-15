@@ -6,22 +6,25 @@
 
 using namespace std;
 
-class Character
+class Character :
+	public Drawable
 {
 public:
 	int hp;
 	int attack;
 	float speed;
-	CircleShape shape;
-	Sprite st[4];
+	CircleShape shape;//Åö×²Ïä
+	vector<Sprite> st;
+	int stp;//state pointer
 	float stateCounter;
 	bool isReverse;
-	//Sprite sprite;
 
 	Character();
 	void resetColor();
 	void loadTexture(Texture& t, int x, int y, int w, int h, int n);
-	Sprite& updateState(float& dt);
+	void update(float& dt);
+	void updateState(float& dt);
+	void draw(RenderTarget& target, RenderStates states) const;
 };
 #endif //_CHARACTER_H_
 

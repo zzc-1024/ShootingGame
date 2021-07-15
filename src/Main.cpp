@@ -2,6 +2,7 @@
 #pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
 #endif
 constexpr int FAIL_TO_FIND_RES		= 1 << 0;
+constexpr int UNKNOWN_ERROR			= -1;
 
 //#include "SFML/Graphics.hpp"
 //#include "SFML/Network.hpp"
@@ -10,11 +11,13 @@ constexpr int FAIL_TO_FIND_RES		= 1 << 0;
 #include "chr/Player.h"
 #include "chr/AI.h"
 #include "bullet.h"
+#include "state/MainMenuState.h"
 
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <list>
+#include <stack>
 #include <stdlib.h>
 
 #include <vld.h>
@@ -29,7 +32,6 @@ int height	= 600;
 RenderWindow* window;
 Texture texture, fireBullet;
 Font font;
-Text text;
 Clock clk;
 
 Sound shoot;
@@ -53,13 +55,13 @@ int main()
 		AI::globalAttack = j["AI"]["attack"].as_integer();
 		AI::globalSpeed = j["AI"]["speed"].as_float();
 #ifdef _DEBUG
-		cout << "Read resource successfully!" << endl;
+		clog << "Read resource successfully!" << endl;
 #endif
 	}
 	catch (json_deserialization_error e)
 	{
 #ifdef _DEBUG
-		cout << "Failed to read resource" << endl;
+		clog << "Failed to read resource" << endl;
 #endif
 		ofstream ofm("res/data.json");
 		j["player"]["hp"] = Player::globalHP;
@@ -79,23 +81,51 @@ int main()
 			ofm << setw(4) << j;
 			return FAIL_TO_FIND_RES;
 		}
+		catch (...)
+		{
+			return UNKNOWN_ERROR;
+		}
+	}
+	catch (...)
+	{
+		return UNKNOWN_ERROR;
 	}
 
 	if (!texture.loadFromFile("res/Tileset.png"))
+	{
+#ifdef _DEBUG
+		cerr << "Failed to open tile";
+#endif
 		return FAIL_TO_FIND_RES;
+	}
 
 	if (!fireBullet.loadFromFile("res/fireball.png"))
+	{
+#ifdef _DEBUG
+		cerr << "Failed to open fire ball tile";
+#endif
 		return FAIL_TO_FIND_RES;
+	}
 
 	Music music;
 	if (!music.openFromFile("res/game_music.wav"))
+	{
+#ifdef _DEBUG
+		cerr << "Failed to open back ground music";
+#endif
 		return FAIL_TO_FIND_RES;
+	}
 	music.setLoop(true);
 	music.play();
 
 	SoundBuffer shootBuffer;
 	if (!shootBuffer.loadFromFile("res/shoot.wav"))
+	{
+#ifdef _DEBUG
+		cerr << "Failed to open back ground music";
+#endif
 		return FAIL_TO_FIND_RES;
+	}
 	shoot.setBuffer(shootBuffer);
 
 	window = new RenderWindow(VideoMode(width, height), L"射击游戏",/*Style::Fullscreen*/ Style::Close | Style::Titlebar);
@@ -104,12 +134,39 @@ int main()
 	view.setCenter(0, 0);
 	window->setView(view);
 	font.loadFromFile("res/simsun.ttc");
-	text.setFont(font);
-	text.setString(L"开始\n游戏");
-	text.setScale(2, 2);
-	Util::setCenter(text);
 	srand(time(0));
 	int score = -1;
+	
+	stack<State*> states;
+	//MainMenuState mm(window, font);
+	states.push(new MainMenuState(window, font));
+	Clock clk;
+	float dt;
+	clk.restart();
+	while (window->isOpen())
+	{
+		window->clear(Color::White);
+		dt = clk.getElapsedTime().asSeconds();
+		states.top()->update(dt);
+		states.top()->draw();
+
+		Event event;
+		while (window->pollEvent(event))
+		{
+			if (event.type == Event::Closed)
+			{
+				window->close();
+				while (!states.empty())
+				{
+					delete states.top();
+					states.pop();
+				}
+				//return;
+			}
+		}
+	}
+
+
 	while (window->isOpen())
 	{
 		menu(score);
@@ -126,6 +183,12 @@ int main()
 
 void menu(int score) 
 {
+	Text text;
+	text.setFont(font);
+	text.setString(L"开始\n游戏");
+	text.setScale(2, 2);
+	Util::setCenter(text);
+
 	View view = window->getView();
 	view.setCenter(0, 0);
 	window->setView(view);
@@ -186,19 +249,15 @@ int run()
 	ai.loadTexture(texture, 432, 80, 16, 16, 4);
 
 	ai.shape.setPosition(-width / 2, rand() % 600);
-	//ai.resetColor();
 	v.push_back(ai);
 
 	ai.shape.setPosition(width * 1.5, rand() % 600);
-	//ai.resetColor();
 	v.push_back(ai);
 
 	ai.shape.setPosition(rand() % 800, -height / 2);
-	//ai.resetColor();
 	v.push_back(ai);
 
 	ai.shape.setPosition(rand() % 800, height * 1.5);
-	//ai.resetColor();
 	v.push_back(ai);
 
 	int score = 0;
@@ -406,11 +465,15 @@ int run()
 		window->draw(rect);
 
 		//window->draw(player.shape);
-		window->draw(player.updateState(dt));
+		player.update(dt);
+		window->draw(player);
 		//for (auto& it : v)
 		//	window->draw(it.shape);
 		for (auto& it : v)
-			window->draw(it.updateState(dt));
+		{
+			it.update(dt);
+			window->draw(it);
+		}
 		for (auto& it : b)
 			window->draw(it.shape);
 		for (auto& it : b)

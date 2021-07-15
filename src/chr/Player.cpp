@@ -13,3 +13,4 @@ Player::Player()
 	this->cd = Player::globalCD;
 	this->cdRemain = 0.f;
 }
+

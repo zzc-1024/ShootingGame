@@ -8,6 +8,7 @@ public:
     static int globalHP;
     static int globalAttack;
     static float globalSpeed;
+
     AI();
 };
 #endif //_AI_H_
