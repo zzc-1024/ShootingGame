@@ -17,7 +17,6 @@ constexpr int UNKNOWN_ERROR			= -1;
 #include <iomanip>
 #include <sstream>
 #include <list>
-#include <stack>
 #include <stdlib.h>
 
 #include <vld.h>
@@ -138,19 +137,22 @@ int main()
 	int score = -1;
 	
 	stack<State*> states;
-	//MainMenuState mm(window, font);
-	states.push(new MainMenuState(window, font));
+	states.push(new MainMenuState(window, font, &states));
 	Clock clk;
 	float dt;
 	clk.restart();
+	Event event;
 	while (window->isOpen())
 	{
 		window->clear(Color::White);
+
 		dt = clk.getElapsedTime().asSeconds();
+		clk.restart();
+		
 		states.top()->update(dt);
 		states.top()->draw();
+		window->display();
 
-		Event event;
 		while (window->pollEvent(event))
 		{
 			if (event.type == Event::Closed)
@@ -161,8 +163,9 @@ int main()
 					delete states.top();
 					states.pop();
 				}
-				//return;
+				break;
 			}
+			states.top()->setEvent(event);
 		}
 	}
 

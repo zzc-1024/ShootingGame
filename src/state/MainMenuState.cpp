@@ -1,7 +1,7 @@
 #include "MainMenuState.h"
 
-MainMenuState::MainMenuState(RenderWindow* window, Font& font) :
-	State(window, font)
+MainMenuState::MainMenuState(RenderWindow* window, Font& font, stack<State*>* states) :
+	State(window, font, states)
 {
 	//初始化窗口的视野
 	//init window's view
@@ -26,14 +26,18 @@ MainMenuState::MainMenuState(RenderWindow* window, Font& font) :
 
 void MainMenuState::update(float dt)
 {
-	//window->clear();
 	updateMouse();
-
+	if (startButton.getGlobalBounds().contains(mPos))
+	{
+		if (event.type == Event::MouseButtonReleased && event.mouseButton.button == Mouse::Left)
+		{
+			states->push(new GameState(this->window, this->font, this->states));
+		}
+	}
 }
 
 void MainMenuState::draw(RenderStates states) const
 {
 	window->draw(startButton);
 	window->draw(startText);
-	window->display();
 }
