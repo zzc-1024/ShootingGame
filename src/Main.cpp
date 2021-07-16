@@ -247,7 +247,7 @@ int run()
 	player.loadTexture(texture, 192, 106, 16, 22, 4);
 
 	list<AI> v;
-	list<bullet> b;
+	list<Bullet> b;
 	AI ai;
 	ai.loadTexture(texture, 432, 80, 16, 16, 4);
 
@@ -367,7 +367,7 @@ int run()
 				if (dx < 0)
 					angle = angle + pi;
 			}
-			bullet tmp;
+			Bullet tmp;
 			tmp.angle = angle;
 			tmp.loadTexture(fireBullet, 0, 0, 26, 10, 10);
 			tmp.shape.setPosition(ppos);

@@ -1,6 +1,6 @@
 #include "bullet.h"
 
-bullet::bullet()
+Bullet::Bullet()
 {
 	life = 2.f;
 	speed = 300;
@@ -11,7 +11,7 @@ bullet::bullet()
 	angle = 0.f;
 }
 
-void bullet::loadTexture(Texture& t, int x, int y, int w, int h, int n)
+void Bullet::loadTexture(Texture& t, int x, int y, int w, int h, int n)
 {
 	Sprite sprite;
 	sprite.setTexture(t);
@@ -24,7 +24,7 @@ void bullet::loadTexture(Texture& t, int x, int y, int w, int h, int n)
 	}
 }
 
-Sprite& bullet::updateState(float& dt)
+Sprite& Bullet::updateState(float& dt)
 {
 	float T = 0.1f * states.size();
 	stateCounter += dt;

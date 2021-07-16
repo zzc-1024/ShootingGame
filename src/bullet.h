@@ -6,7 +6,7 @@
 using namespace sf;
 using namespace std;
 
-class bullet
+class Bullet
 {
 public:
 	float speed;
@@ -16,7 +16,7 @@ public:
 	vector<Sprite> states;
 	float stateCounter;
 
-	bullet();
+	Bullet();
 	void loadTexture(Texture& t, int x, int y, int w, int h, int n);
 	Sprite& updateState(float& dt);
 };

@@ -3,10 +3,21 @@
 
 #include "state/State.h"
 #include "chr/AI.h"
+#include "chr/Player.h"
+#include "Bullet.h"
+#include "map/TileMap.h"
+#include <list>
 
 class GameState :
     public State
 {
+private:
+    Player player;
+    list<AI> aiList;
+    list<Bullet> bulletList;
+
+    TileMap tMap;
+
 public:
     GameState(RenderWindow* window, Font font, stack<State*>* states);
 
