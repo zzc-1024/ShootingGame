@@ -12,7 +12,7 @@ private:
 public:
     MainMenuState(RenderWindow* window, Font& font, stack<State*>* states);
     void update(float dt);
-    void draw(RenderStates states = RenderStates::Default) const;
+    void draw(RenderStates states = RenderStates::Default);
 };
 
 #endif //_MAINMENUSTATE_H_

@@ -6,7 +6,6 @@ constexpr int UNKNOWN_ERROR			= -1;
 
 //#include "SFML/Graphics.hpp"
 //#include "SFML/Network.hpp"
-#include "SFML/Audio.hpp"
 #include "jsonxx/json.hpp"
 #include "chr/Player.h"
 #include "chr/AI.h"
@@ -41,6 +40,10 @@ int run();
 
 int main()
 {
+	//int* aaa = new int;
+	//*aaa = 1;
+
+
 	json j;
 	try
 	{
@@ -138,6 +141,12 @@ int main()
 	
 	stack<State*> states;
 	states.push(new MainMenuState(window, font, &states));
+
+	//¼ì²âÄÚ´æÐ¹Â©
+	states.push(new GameState(window, font, &states));
+	delete states.top();
+	states.pop();
+
 	Clock clk;
 	float dt;
 	clk.restart();
@@ -149,8 +158,17 @@ int main()
 		dt = clk.getElapsedTime().asSeconds();
 		clk.restart();
 		
-		states.top()->update(dt);
-		states.top()->draw();
+		if (!states.top()->isEnd)
+		{
+			states.top()->update(dt); 
+			states.top()->draw();
+		}
+		else
+		{
+			delete states.top();
+			states.pop();
+		}
+		
 		window->display();
 
 		while (window->pollEvent(event))
@@ -168,8 +186,9 @@ int main()
 			states.top()->setEvent(event);
 		}
 	}
+	delete window;
 
-
+	/*
 	while (window->isOpen())
 	{
 		menu(score);
@@ -178,12 +197,13 @@ int main()
 		clk.restart();
 		score = run();
 
-	}
-	delete window;
+	}*/
 
 	return 0;
 }
 
+#define AAA
+#ifndef AAA
 void menu(int score) 
 {
 	Text text;
@@ -486,3 +506,4 @@ int run()
 		window->display();
 	}
 }
+#endif

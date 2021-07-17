@@ -59,7 +59,7 @@ private:
         states.transform *= getTransform();
 
         // apply the tileset texture
-        states.texture = &m_tileset;
+        //states.texture = &m_tileset;
 
         // draw the vertex array
         target.draw(m_vertices, states);

@@ -36,7 +36,7 @@ void MainMenuState::update(float dt)
 	}
 }
 
-void MainMenuState::draw(RenderStates states) const
+void MainMenuState::draw(RenderStates states)
 {
 	window->draw(startButton);
 	window->draw(startText);

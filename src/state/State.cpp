@@ -10,6 +10,7 @@ State::State(RenderWindow* window, Font& font, stack<State*>* states)
 	this->window = window;
 	this->font = font;
 	this->states = states;
+	this->isEnd = false;
 }
 
 void State::setFont(Font font)

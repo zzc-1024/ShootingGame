@@ -16,6 +16,11 @@ Character::Character()
 	shape.setOutlineThickness(1);
 }
 
+Character::~Character()
+{//³¢ÊÔ½â¾öÄÚ´æĞ¹Â©
+	vector<Sprite>().swap(st);
+}
+
 void Character::resetColor()
 {
 	shape.setFillColor(Color(rand() % 256, rand() % 256, rand() % 256));

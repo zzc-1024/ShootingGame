@@ -2,6 +2,7 @@
 #define _STATE_H_
 #include "Util.h"
 #include <stack>
+#include "SFML/Audio.hpp"
 using namespace std;
 class State
 {
@@ -16,6 +17,8 @@ protected:
 	void updateMouse();
 
 public:
+	bool isEnd;
+
 	stack<State*>* states;
 
 	State() = delete;
@@ -33,7 +36,7 @@ public:
 	Event getEvent();
 
 	virtual void update(float dt) = 0;
-	virtual void draw(RenderStates = RenderStates::Default) const = 0;
+	virtual void draw(RenderStates = RenderStates::Default) = 0;
 };
 
 

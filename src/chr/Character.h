@@ -20,6 +20,7 @@ public:
 	bool isReverse;
 
 	Character();
+	~Character();
 	void resetColor();
 	void loadTexture(Texture& t, int x, int y, int w, int h, int n);
 	void update(float& dt);
