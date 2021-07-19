@@ -16,7 +16,7 @@ constexpr int UNKNOWN_ERROR			= -1;
 #include <iomanip>
 #include <sstream>
 #include <list>
-#include <stdlib.h>
+//#include <stdlib.h>
 
 #include <vld.h>
 

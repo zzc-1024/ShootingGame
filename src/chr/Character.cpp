@@ -17,8 +17,8 @@ Character::Character()
 }
 
 Character::~Character()
-{//³¢ÊÔ½â¾öÄÚ´æĞ¹Â©
-	vector<Sprite>().swap(st);
+{
+	
 }
 
 void Character::resetColor()
@@ -28,14 +28,14 @@ void Character::resetColor()
 
 void Character::loadTexture(Texture& t, int x, int y, int w, int h, int n)
 {
-	st.clear();
+	st.resize(n);
 	Sprite sprite;
 	for (int i = 0; i < n; i++)
 	{
 		sprite.setTexture(t);
 		sprite.setTextureRect(IntRect(x + i * w, y, w, h));
 		Util::setCenter(sprite);
-		st.push_back(sprite);
+		st[i] = sprite;
 	}
 }
 
@@ -56,7 +56,6 @@ void Character::updateState(float& dt)
 		st[stp].setScale(-3.f, 3.f);
 	else
 		st[stp].setScale(3.f, 3.f);
-	//return st[static_cast<int>(stateCounter * 10)];
 }
 
 void Character::draw(RenderTarget& target, RenderStates states) const

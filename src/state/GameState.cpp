@@ -3,6 +3,8 @@
 GameState::GameState(RenderWindow* window, Font font, stack<State*>* states) :
 	State(window, font, states)
 {
+    dt = 0.f;
+
     const int level[] =
     {
         0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -27,17 +29,20 @@ GameState::GameState(RenderWindow* window, Font font, stack<State*>* states) :
     fireBullet.loadFromFile("res/fireball.png");
 
     player.loadTexture(texture, 192, 106, 16, 22, 4);
-    ai.loadTexture(texture, 432, 80, 16, 16, 4);
 
+    ai.loadTexture(texture, 432, 80, 16, 16, 4);
     ai.shape.setPosition(-width / 2, rand() % 600);
     aiList.push_back(ai);
 
+    ai.loadTexture(texture, 432, 80, 16, 16, 4);
     ai.shape.setPosition(width * 1.5, rand() % 600);
     aiList.push_back(ai);
 
+    ai.loadTexture(texture, 432, 80, 16, 16, 4);
     ai.shape.setPosition(rand() % 800, -height / 2);
     aiList.push_back(ai);
 
+    ai.loadTexture(texture, 432, 80, 16, 16, 4);
     ai.shape.setPosition(rand() % 800, height * 1.5);
     aiList.push_back(ai);
 
@@ -78,8 +83,6 @@ void GameState::update(float dt)
         //return score;
     }
 
-    cout << player.shape.getPosition().x << ' ';
-
     Vector2f pPos = player.shape.getPosition();
 
     if (pPos.x < 0)
@@ -92,8 +95,6 @@ void GameState::update(float dt)
         pPos.y = height;
 
     player.shape.setPosition(pPos);
-
-    cout << player.shape.getPosition().x << endl;
 
     view.setCenter(pPos);
     this->window->setView(view);
@@ -209,15 +210,19 @@ void GameState::update(float dt)
     while (flushAI >= 0.1f)
     {
         flushAI -= 0.1f;
+        ai.loadTexture(texture, 432, 80, 16, 16, 4);
         ai.shape.setPosition(-width / 2, rand() % 600);
         if (rand() % 1000 < 10 + score)
             aiList.push_back(ai);
+        ai.loadTexture(texture, 432, 80, 16, 16, 4);
         ai.shape.setPosition(width * 1.5, rand() % 600);
         if (rand() % 1000 < 10 + score)
             aiList.push_back(ai);
+        ai.loadTexture(texture, 432, 80, 16, 16, 4);
         ai.shape.setPosition(rand() % 800, -height / 2);
         if (rand() % 1000 < 10 + score)
             aiList.push_back(ai);
+        ai.loadTexture(texture, 432, 80, 16, 16, 4);
         ai.shape.setPosition(rand() % 800, height * 1.5);
         if (rand() % 1000 < 10 + score)
             aiList.push_back(ai);

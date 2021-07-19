@@ -1,6 +1,6 @@
 #ifndef _STATE_H_
 #define _STATE_H_
-#include "Util.h"
+#include "utils/Util.h"
 #include <stack>
 #include "SFML/Audio.hpp"
 using namespace std;

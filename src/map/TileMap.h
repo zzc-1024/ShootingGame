@@ -1,7 +1,7 @@
 #ifndef _TILEMAP_H_
 #define _TILEMAP_H_
 
-#include "Util.h"
+#include "utils/Util.h"
 
 class TileMap :
 	public Drawable,

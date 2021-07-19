@@ -1,6 +1,6 @@
-#include "SeqList.h"
+/*#include "SeqList.h"
 template<typename T>
-inline SeqList<T>::SeqList(uint size)
+inline SeqList<T>::SeqList(unsigned int size)
 {
 	this->length = size;
 	if (size)
@@ -10,7 +10,7 @@ inline SeqList<T>::SeqList(uint size)
 }
 
 template<typename T>
-void SeqList<T>::resize(uint size)
+void SeqList<T>::resize(unsigned int size)
 {
 	if (this->data)
 		delete[] this->data;
@@ -36,9 +36,9 @@ void SeqList<T>::clear()
 }
 
 template<typename T>
-T& SeqList<T>::operator[](uint index) const
+T& SeqList<T>::operator[](unsigned int index) const
 {
 	return data[index];
 }
 
-
+*/

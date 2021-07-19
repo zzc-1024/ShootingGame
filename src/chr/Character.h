@@ -1,8 +1,9 @@
 #ifndef _CHARACTER_H_
 #define _CHARACTER_H_
 #include <iostream>
-#include <vector>
-#include "Util.h"
+//#include <vector>
+#include "utils/Util.h"
+#include "utils/SeqList.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ public:
 	int attack;
 	float speed;
 	CircleShape shape;//Åö×²Ïä
-	vector<Sprite> st;
+	SeqList<Sprite> st;
 	int stp;//state pointer
 	float stateCounter;
 	bool isReverse;

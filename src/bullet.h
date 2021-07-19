@@ -1,7 +1,7 @@
 #ifndef _BULLET_H_
 #define _BULLET_H_
 #include <vector>
-#include "Util.h"
+#include "utils/Util.h"
 
 using namespace sf;
 using namespace std;
